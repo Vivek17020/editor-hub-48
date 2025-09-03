@@ -11,6 +11,9 @@ import { TrendingArticles } from '@/components/public/trending-articles';
 import { BreakingNews } from '@/components/public/breaking-news';
 import { FeaturedArticles } from '@/components/public/featured-articles';
 import { JustInSection } from '@/components/public/just-in-section';
+import { AdSlot } from '@/components/ads/ad-slot';
+import { NativeAdContainer } from '@/components/ads/native-ad-container';
+import { PremiumArticleList } from '@/components/monetization/premium-article-list';
 import { SEOHead, generateOrganizationStructuredData } from '@/utils/seo';
 import { CoreWebVitals } from '@/components/performance/core-web-vitals';
 import { Button } from '@/components/ui/button';
@@ -19,7 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useArticles, useCategories } from '@/hooks/use-articles';
 import { useAuth } from '@/hooks/use-auth';
-import { Search, TrendingUp, Clock, Play, User, Home } from 'lucide-react';
+import { Search, TrendingUp, Clock, Play, User, Home, Crown } from 'lucide-react';
 
 export default function NewsHomepage() {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
@@ -78,6 +81,15 @@ export default function NewsHomepage() {
                     Search
                   </Button>
                   <PushNotificationButton />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => window.location.href = '/subscription'}
+                    className="gap-2 bg-gradient-to-r from-primary to-primary/80"
+                  >
+                    <Crown className="h-4 w-4" />
+                    Go Premium
+                  </Button>
                 </div>
               </div>
             </div>
@@ -90,12 +102,15 @@ export default function NewsHomepage() {
             <FeaturedArticles />
           </section>
 
+          {/* Top Banner Ad */}
+          <AdSlot id="homepage-top-banner" format="leaderboard" />
+
           <Separator className="my-8" />
 
           {/* Main Content Tabs */}
           <section className="py-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8 max-w-md mx-auto">
+              <TabsList className="grid w-full grid-cols-3 mb-8 max-w-md mx-auto">
                 <TabsTrigger value="for-you" className="gap-2">
                   {user ? <User className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
                   {user ? "For You" : "Trending"}
@@ -103,6 +118,10 @@ export default function NewsHomepage() {
                 <TabsTrigger value="browse" className="gap-2">
                   <Home className="h-4 w-4" />
                   Browse All
+                </TabsTrigger>
+                <TabsTrigger value="premium" className="gap-2">
+                  <Crown className="h-4 w-4" />
+                  Premium
                 </TabsTrigger>
               </TabsList>
 
@@ -115,22 +134,24 @@ export default function NewsHomepage() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                   {/* Main Articles Column */}
                   <div className="lg:col-span-3 space-y-8">
-                    {/* Category Filter */}
                     <CategoryFilter 
                       activeCategory={selectedCategory}
                       onCategoryChange={setSelectedCategory}
                     />
                     
-                    {/* Articles Grid */}
                     <ArticleGrid categorySlug={selectedCategory} />
+                    
+                    {/* Native Ad between articles */}
+                    <NativeAdContainer position="between-articles" articleIndex={0} />
                   </div>
 
                   {/* Sidebar Content */}
                   <div className="space-y-6">
-                    {/* Just In Section */}
                     <JustInSection />
 
-                    {/* Trending Articles */}
+                    {/* Sidebar Ad */}
+                    <NativeAdContainer position="sidebar" articleIndex={0} />
+
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -143,10 +164,13 @@ export default function NewsHomepage() {
                       </CardContent>
                     </Card>
 
-                    {/* Newsletter Signup */}
                     <NewsletterSignup />
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="premium">
+                <PremiumArticleList />
               </TabsContent>
             </Tabs>
           </section>

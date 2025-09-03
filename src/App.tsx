@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
 import EditorialGuidelines from "./pages/EditorialGuidelines";
+import SubscriptionPage from "./pages/SubscriptionPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminLayout from "./pages/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/news-sitemap.xml" element={<NewsSitemapXML />} />
                 <Route path="/about" element={<AboutUs />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/subscription" element={<SubscriptionPage />} />
                 <Route path="/editorial-guidelines" element={<EditorialGuidelines />} />
                 
                 {/* Admin Routes */}
