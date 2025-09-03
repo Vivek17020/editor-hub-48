@@ -1,0 +1,184 @@
+import { useState } from "react";
+import { Navbar } from "@/components/public/navbar";
+import { CategoryFilter } from "@/components/public/category-filter";
+import { ArticleGrid } from "@/components/public/article-grid";
+import { PersonalizedFeed } from "@/components/public/personalized-feed";
+import { Footer } from '@/components/public/footer';
+import { NewsletterSignup } from '@/components/public/newsletter-signup';
+import { PushNotificationButton } from '@/components/public/push-notification-button';
+import { SearchDialog } from '@/components/public/search-dialog';
+import { TrendingArticles } from '@/components/public/trending-articles';
+import { BreakingNews } from '@/components/public/breaking-news';
+import { FeaturedArticles } from '@/components/public/featured-articles';
+import { JustInSection } from '@/components/public/just-in-section';
+import { SEOHead, generateOrganizationStructuredData } from '@/utils/seo';
+import { CoreWebVitals } from '@/components/performance/core-web-vitals';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useArticles, useCategories } from '@/hooks/use-articles';
+import { useAuth } from '@/hooks/use-auth';
+import { Search, TrendingUp, Clock, Play, User, Home } from 'lucide-react';
+
+export default function NewsHomepage() {
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("for-you");
+  
+  const { user } = useAuth();
+  const { data: categories } = useCategories();
+  const { data: latestArticles } = useArticles(undefined, 1, 6);
+
+  return (
+    <>
+      <SEOHead 
+        title="TheBulletinBriefs - Latest Breaking News & Updates"
+        description="Stay informed with the latest breaking news, politics, technology, business, sports, and entertainment news from around the world."
+        structuredData={generateOrganizationStructuredData()}
+      />
+      
+      {/* Core Web Vitals Optimization */}
+      <CoreWebVitals />
+      
+      <div className="min-h-screen bg-background">
+        {/* Fixed Navbar */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <Navbar />
+          
+          {/* Breaking News Bar */}
+          <BreakingNews />
+          
+          {/* Secondary Navigation */}
+          <div className="border-b bg-card">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-4 overflow-x-auto">
+                  {categories?.slice(0, 6).map((category) => (
+                    <Button
+                      key={category.id}
+                      variant={selectedCategory === category.slug ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(category.slug === selectedCategory ? undefined : category.slug)}
+                      className="whitespace-nowrap text-xs"
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSearchOpen(true)}
+                    className="gap-2"
+                  >
+                    <Search className="h-4 w-4" />
+                    Search
+                  </Button>
+                  <PushNotificationButton />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hero Section - Featured Articles */}
+          <section className="py-8">
+            <FeaturedArticles />
+          </section>
+
+          <Separator className="my-8" />
+
+          {/* Main Content Tabs */}
+          <section className="py-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-8 max-w-md mx-auto">
+                <TabsTrigger value="for-you" className="gap-2">
+                  {user ? <User className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+                  {user ? "For You" : "Trending"}
+                </TabsTrigger>
+                <TabsTrigger value="browse" className="gap-2">
+                  <Home className="h-4 w-4" />
+                  Browse All
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="for-you">
+                <PersonalizedFeed />
+              </TabsContent>
+
+              <TabsContent value="browse" className="space-y-8">
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                  {/* Main Articles Column */}
+                  <div className="lg:col-span-3 space-y-8">
+                    {/* Category Filter */}
+                    <CategoryFilter 
+                      activeCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                    />
+                    
+                    {/* Articles Grid */}
+                    <ArticleGrid categorySlug={selectedCategory} />
+                  </div>
+
+                  {/* Sidebar Content */}
+                  <div className="space-y-6">
+                    {/* Just In Section */}
+                    <JustInSection />
+
+                    {/* Trending Articles */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-primary" />
+                          Trending Now
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <TrendingArticles />
+                      </CardContent>
+                    </Card>
+
+                    {/* Newsletter Signup */}
+                    <NewsletterSignup />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </section>
+
+          {/* Sidebar with Quick Actions */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Push Notifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">📱 Stay Updated</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get instant news updates delivered to your device
+                </p>
+                <PushNotificationButton />
+              </CardContent>
+            </Card>
+
+            {/* Newsletter Signup */}
+            <div className="md:col-span-2">
+              <NewsletterSignup />
+            </div>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <Footer />
+
+        {/* Search Dialog */}
+        <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+      </div>
+    </>
+  );
+}

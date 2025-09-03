@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: /sitemap.xml
+Sitemap: /news-sitemap.xml
+
+# RSS Feed
+Sitemap: /rss
+
+# Block admin areas
+Disallow: /admin/
