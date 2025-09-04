@@ -65,7 +65,7 @@ export default function ArticlePage() {
         });
       };
     }
-  }, [article?.id, trackReading]);
+  }, [article?.id]);
 
   if (isLoading) {
     return (
