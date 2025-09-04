@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { AIAssistantPanel } from './ai-assistant-panel';
+import { ArticlePremiumControls } from './article-premium-controls';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Upload, Eye, Save, Send, X } from 'lucide-react';
@@ -26,6 +27,10 @@ interface Article {
   published: boolean;
   meta_title?: string;
   meta_description?: string;
+  is_premium?: boolean;
+  premium_preview_length?: number;
+  ads_enabled?: boolean;
+  affiliate_products_enabled?: boolean;
 }
 
 interface ArticleFormProps {
@@ -459,6 +464,18 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Monetization Settings */}
+          {article?.id && (
+            <ArticlePremiumControls
+              articleId={article.id}
+              isPremium={article.is_premium || false}
+              premiumPreviewLength={article.premium_preview_length || 300}
+              adsEnabled={article.ads_enabled !== false}
+              affiliateProductsEnabled={article.affiliate_products_enabled !== false}
+              onUpdate={onSave || (() => {})}
+            />
+          )}
         </div>
       </div>
     </div>

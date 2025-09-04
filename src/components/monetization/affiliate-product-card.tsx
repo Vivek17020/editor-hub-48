@@ -31,8 +31,16 @@ export const AffiliateProductCard = ({
 }: AffiliateProductCardProps) => {
   const trackAffiliateClick = async () => {
     try {
-      // Track affiliate click - will be implemented when database tables are available
-      console.log('Affiliate click tracked:', { product_id: id, type: 'affiliate_click' });
+      await supabase.from('monetization_analytics').insert({
+        event_type: 'affiliate_click',
+        revenue_amount: commissionRate ? (price * (commissionRate / 100)) : 0,
+        metadata: { 
+          product_id: id,
+          product_name: title,
+          affiliate_url: affiliateUrl,
+          commission_rate: commissionRate
+        }
+      });
     } catch (error) {
       console.error('Failed to track affiliate click:', error);
     }

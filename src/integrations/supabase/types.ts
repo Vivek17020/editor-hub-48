@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_products: {
+        Row: {
+          affiliate_url: string
+          category_id: string | null
+          commission_rate: number | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          price: number | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_url: string
+          category_id?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_url?: string
+          category_id?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       article_likes: {
         Row: {
           article_id: string
@@ -67,6 +112,8 @@ export type Database = {
       }
       articles: {
         Row: {
+          ads_enabled: boolean | null
+          affiliate_products_enabled: boolean | null
           ai_keywords: string[] | null
           ai_summary: string | null
           author: string
@@ -80,11 +127,13 @@ export type Database = {
           featured: boolean | null
           id: string
           image_url: string | null
+          is_premium: boolean | null
           language: string | null
           likes_count: number | null
           meta_description: string | null
           meta_title: string | null
           original_article_id: string | null
+          premium_preview_length: number | null
           published: boolean | null
           published_at: string | null
           reading_time: number | null
@@ -100,6 +149,8 @@ export type Database = {
           views_count: number | null
         }
         Insert: {
+          ads_enabled?: boolean | null
+          affiliate_products_enabled?: boolean | null
           ai_keywords?: string[] | null
           ai_summary?: string | null
           author?: string
@@ -113,11 +164,13 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          is_premium?: boolean | null
           language?: string | null
           likes_count?: number | null
           meta_description?: string | null
           meta_title?: string | null
           original_article_id?: string | null
+          premium_preview_length?: number | null
           published?: boolean | null
           published_at?: string | null
           reading_time?: number | null
@@ -133,6 +186,8 @@ export type Database = {
           views_count?: number | null
         }
         Update: {
+          ads_enabled?: boolean | null
+          affiliate_products_enabled?: boolean | null
           ai_keywords?: string[] | null
           ai_summary?: string | null
           author?: string
@@ -146,11 +201,13 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          is_premium?: boolean | null
           language?: string | null
           likes_count?: number | null
           meta_description?: string | null
           meta_title?: string | null
           original_article_id?: string | null
+          premium_preview_length?: number | null
           published?: boolean | null
           published_at?: string | null
           reading_time?: number | null
@@ -348,6 +405,45 @@ export type Database = {
           },
         ]
       }
+      monetization_analytics: {
+        Row: {
+          article_id: string | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          revenue_amount: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          revenue_amount?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          revenue_amount?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           email: string
@@ -434,6 +530,42 @@ export type Database = {
           endpoint?: string
           id?: string
           p256dh?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []

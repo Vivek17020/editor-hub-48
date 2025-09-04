@@ -27,8 +27,11 @@ export const AdSlot = ({ id, format = 'rectangle', className, lazy = true }: AdS
 
   const trackAdImpression = async () => {
     try {
-      // Track ad impression - will be implemented when database tables are available
-      console.log('Ad impression tracked:', { ad_slot_id: id, type: 'impression' });
+      await supabase.from('monetization_analytics').insert({
+        event_type: 'ad_impression',
+        article_id: null, // Can be set if ad is on article page
+        metadata: { ad_id: id, ad_format: format }
+      });
     } catch (error) {
       console.error('Failed to track ad impression:', error);
     }
@@ -36,8 +39,11 @@ export const AdSlot = ({ id, format = 'rectangle', className, lazy = true }: AdS
 
   const trackAdClick = async () => {
     try {
-      // Track ad click - will be implemented when database tables are available
-      console.log('Ad click tracked:', { ad_slot_id: id, type: 'click' });
+      await supabase.from('monetization_analytics').insert({
+        event_type: 'ad_click', 
+        article_id: null,
+        metadata: { ad_id: id, ad_format: format }
+      });
     } catch (error) {
       console.error('Failed to track ad click:', error);
     }
@@ -79,13 +85,18 @@ export const AdSlot = ({ id, format = 'rectangle', className, lazy = true }: AdS
     >
       {isLoaded ? (
         <>
-          {/* This is where Google AdSense code would be inserted */}
+          {/* Google AdSense - Replace with actual AdSense code */}
           <div className="ad-content text-center text-muted-foreground">
-            <div className="text-xs mb-2">Advertisement</div>
-            <div className="text-sm">
-              {format === 'native' ? 'Native Ad Content' : `${format.charAt(0).toUpperCase() + format.slice(1)} Ad`}
+            <ins className="adsbygoogle"
+                 style={{ display: 'inline-block', width: `${adDimensions[format].width}px`, height: `${adDimensions[format].height}px` }}
+                 data-ad-client="ca-pub-XXXXXXXXXX" // Replace with your AdSense publisher ID
+                 data-ad-slot="XXXXXXXXXX"         // Replace with your ad unit ID
+                 data-ad-format="auto"
+                 data-full-width-responsive="true">
+            </ins>
+            <div className="text-xs text-muted-foreground mt-2">
+              Advertisement
             </div>
-            <div className="text-xs mt-1 opacity-60">AdSense Ready - {adDimensions[format].width}x{adDimensions[format].height}</div>
           </div>
           
           {/* AdSense script insertion point */}

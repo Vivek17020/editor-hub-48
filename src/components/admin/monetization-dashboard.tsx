@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import {
   Crown,
   ExternalLink
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MetricCardProps {
   title: string;
@@ -39,19 +40,86 @@ const MetricCard = ({ title, value, change, icon, trend }: MetricCardProps) => (
 
 export const MonetizationDashboard = () => {
   const [timeRange, setTimeRange] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    totalRevenue: 0,
+    adRevenue: 0,
+    affiliateRevenue: 0,
+    subscriptionRevenue: 0,
+    totalSubscribers: 0,
+    activeSubscribers: 0,
+    adImpressions: 0,
+    adClicks: 0,
+    affiliateClicks: 0,
+    conversionRate: 0
+  });
 
-  // Mock data - would be replaced with real analytics
-  const metrics = {
-    totalRevenue: 2450.00,
-    adRevenue: 1200.50,
-    affiliateRevenue: 850.75,
-    subscriptionRevenue: 398.75,
-    totalSubscribers: 156,
-    activeSubscribers: 142,
-    adImpressions: 45230,
-    adClicks: 892,
-    affiliateClicks: 234,
-    conversionRate: 3.2
+  useEffect(() => {
+    fetchMetrics();
+  }, [timeRange]);
+
+  const fetchMetrics = async () => {
+    setLoading(true);
+    try {
+      const daysAgo = parseInt(timeRange.replace('d', ''));
+      const startDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+      // Fetch revenue data
+      const { data: revenueData } = await supabase
+        .from('monetization_analytics')
+        .select('event_type, revenue_amount, created_at')
+        .gte('created_at', startDate)
+        .not('revenue_amount', 'is', null);
+
+      // Fetch subscriber count
+      const { count: totalSubs } = await supabase
+        .from('subscribers')
+        .select('*', { count: 'exact', head: true })
+        .eq('subscribed', true);
+
+      // Fetch analytics
+      const { count: adImpressions } = await supabase
+        .from('monetization_analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'ad_impression')
+        .gte('created_at', startDate);
+
+      const { count: adClicks } = await supabase
+        .from('monetization_analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'ad_click')
+        .gte('created_at', startDate);
+
+      const { count: affiliateClicks } = await supabase
+        .from('monetization_analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'affiliate_click')
+        .gte('created_at', startDate);
+
+      // Calculate metrics
+      const totalRevenue = revenueData?.reduce((sum, record) => sum + (record.revenue_amount || 0), 0) || 0;
+      const adRevenue = revenueData?.filter(r => r.event_type === 'ad_click').reduce((sum, record) => sum + (record.revenue_amount || 0), 0) || 0;
+      const affiliateRevenue = revenueData?.filter(r => r.event_type === 'affiliate_click').reduce((sum, record) => sum + (record.revenue_amount || 0), 0) || 0;
+      const subscriptionRevenue = revenueData?.filter(r => r.event_type === 'subscription_purchase').reduce((sum, record) => sum + (record.revenue_amount || 0), 0) || 0;
+      const ctr = (adImpressions && adImpressions > 0) ? (adClicks || 0) / adImpressions * 100 : 0;
+
+      setMetrics({
+        totalRevenue,
+        adRevenue,
+        affiliateRevenue,
+        subscriptionRevenue,
+        totalSubscribers: totalSubs || 0,
+        activeSubscribers: totalSubs || 0,
+        adImpressions: adImpressions || 0,
+        adClicks: adClicks || 0,
+        affiliateClicks: affiliateClicks || 0,
+        conversionRate: ctr
+      });
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const recentTransactions = [
