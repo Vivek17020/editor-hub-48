@@ -219,13 +219,13 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
         const updatePayload = {
           title: formData.title,
           slug: formData.slug,
-          excerpt: formData.excerpt,
+          excerpt: formData.excerpt?.trim() ? formData.excerpt : null,
           content: formData.content,
-          image_url: formData.image_url,
+          image_url: (formData.image_url && formData.image_url.trim() !== '') ? formData.image_url : null,
           category_id: categoryId,
-          tags: sanitizedTags,
-          meta_title: formData.meta_title || null,
-          meta_description: formData.meta_description || null,
+          tags: sanitizedTags.length ? sanitizedTags : null,
+          meta_title: formData.meta_title?.trim() ? formData.meta_title : null,
+          meta_description: formData.meta_description?.trim() ? formData.meta_description : null,
           updated_at: new Date().toISOString(),
         } as any;
         
@@ -354,13 +354,13 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       const articleData = {
         title: formData.title,
         slug: safeSlug,
-        excerpt: formData.excerpt,
+        excerpt: formData.excerpt?.trim() ? formData.excerpt : null,
         content: formData.content,
-        image_url: imageUrl,
+        image_url: (imageUrl && imageUrl.trim() !== '') ? imageUrl : null,
         category_id: categoryId,
-        tags: sanitizedTags,
-        meta_title: formData.meta_title || null,
-        meta_description: formData.meta_description || null,
+        tags: sanitizedTags.length ? sanitizedTags : null,
+        meta_title: formData.meta_title?.trim() ? formData.meta_title : null,
+        meta_description: formData.meta_description?.trim() ? formData.meta_description : null,
         author_id: user.id,
         published: !isDraft,
         published_at: !isDraft ? now : null,
@@ -404,9 +404,11 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       onSave?.();
       navigate('/admin/articles');
     } catch (error: any) {
+      console.error('Article save error:', error);
+      const details = error?.details || error?.hint || '';
       toast({
         title: 'Error',
-        description: error?.message || 'Failed to save article',
+        description: (error?.message || 'Failed to save article') + (details ? ` — ${details}` : ''),
         variant: 'destructive',
       });
     } finally {
