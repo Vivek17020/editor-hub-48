@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,6 +67,7 @@ const articleValidationSchema = z.object({
 
 export function ArticleForm({ article, onSave }: ArticleFormProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
@@ -402,6 +404,10 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       localStorage.removeItem(draftKey);
       setHasUnsavedChanges(false);
       setAutoSaveStatus('idle');
+
+      // Invalidate React Query cache to refresh article lists everywhere
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      queryClient.invalidateQueries({ queryKey: ['articles-paginated'] });
 
       onSave?.();
       navigate('/admin/articles');

@@ -17,7 +17,7 @@ export function ArticleGrid({ categorySlug }: ArticleGridProps) {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const { data, isLoading, error, isFetching } = useQuery({
+  const { data, isLoading, error, isFetching, refetch } = useQuery({
     queryKey: ["articles-paginated", categorySlug, page],
     queryFn: async () => {
       let query = supabase
@@ -61,7 +61,18 @@ export function ArticleGrid({ categorySlug }: ArticleGridProps) {
         hasMore: (count || 0) > page * ARTICLES_PER_PAGE
       };
     },
+    staleTime: 1000 * 30, // Consider data stale after 30 seconds
   });
+
+  // Listen for article publish events to auto-refresh
+  useEffect(() => {
+    const handleArticlePublished = () => {
+      refetch();
+    };
+    
+    window.addEventListener('article-published', handleArticlePublished);
+    return () => window.removeEventListener('article-published', handleArticlePublished);
+  }, [refetch]);
 
   // Update all articles when new data comes in
   useEffect(() => {

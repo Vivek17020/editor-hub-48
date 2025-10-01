@@ -150,7 +150,13 @@ export default function AdminArticles() {
         description: `The article has been ${!currentStatus ? 'published' : 'unpublished'}.`,
       });
 
+      // Refresh article list
       fetchArticles();
+      
+      // Invalidate frontend cache
+      if (window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('article-published'));
+      }
     } catch (error) {
       console.error('Error updating article:', error);
       toast({
