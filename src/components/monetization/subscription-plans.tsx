@@ -5,7 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Zap, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface Plan {
   id: string;
@@ -16,7 +22,7 @@ interface Plan {
   features: string[];
   popular?: boolean;
   icon: React.ReactNode;
-  stripePriceId?: string;
+  razorpayPlanId?: string;
 }
 
 const plans: Plan[] = [
@@ -50,7 +56,7 @@ const plans: Plan[] = [
     ],
     popular: true,
     icon: <Crown className="h-5 w-5" />,
-    stripePriceId: 'price_premium_monthly',
+    razorpayPlanId: 'plan_premium_monthly',
   },
   {
     id: 'pro',
@@ -67,7 +73,7 @@ const plans: Plan[] = [
       'Archive access (10+ years)'
     ],
     icon: <Zap className="h-5 w-5" />,
-    stripePriceId: 'price_pro_yearly',
+    razorpayPlanId: 'plan_pro_yearly',
   },
 ];
 
@@ -75,30 +81,45 @@ export const SubscriptionPlans = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubscribe = async (plan: Plan) => {
     if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to subscribe to a plan.",
-        variant: "destructive",
-      });
+      toast.error('Please sign in to subscribe to a plan');
       return;
     }
 
     if (plan.id === 'free') {
-      toast({
-        title: "You're already on the free plan!",
-        description: "Upgrade to Premium or Pro for more features.",
-      });
+      toast.error('You are already on the free plan');
       return;
     }
 
     setLoading(plan.id);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error('Failed to load Razorpay SDK');
+      }
+
+      // Create subscription
+      const { data, error } = await supabase.functions.invoke('create-razorpay-subscription', {
         body: {
-          priceId: plan.stripePriceId,
+          planId: plan.razorpayPlanId,
           planName: plan.name,
           planPrice: plan.price,
         },
@@ -106,18 +127,46 @@ export const SubscriptionPlans = () => {
 
       if (error) throw error;
 
-      if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+      if (data?.subscriptionId) {
+        // Open Razorpay checkout
+        const options = {
+          key: 'rzp_test_RGK3vy1r83ba5b', // Razorpay Test Key ID
+          subscription_id: data.subscriptionId,
+          name: 'TheBulletinBriefs',
+          description: `${plan.name} Subscription`,
+          image: '/favicon.ico',
+          prefill: {
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email.split('@')[0],
+            contact: user.user_metadata?.phone || '',
+          },
+          theme: {
+            color: '#3B82F6',
+          },
+          modal: {
+            ondismiss: () => {
+              setLoading(null);
+            }
+          },
+          handler: (response: any) => {
+            toast.success('Payment successful! Your subscription is now active.');
+            setLoading(null);
+            window.location.reload();
+          },
+          payment_methods: {
+            upi: true,
+            card: true,
+            netbanking: true,
+            wallet: true,
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
       }
     } catch (error: any) {
       console.error('Subscription error:', error);
-      toast({
-        title: "Subscription failed",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
+      toast.error(error.message || 'Failed to start checkout process. Please try again.');
       setLoading(null);
     }
   };

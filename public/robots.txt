@@ -2,11 +2,18 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: /sitemap.xml
-Sitemap: /news-sitemap.xml
+Sitemap: https://thebulletinbriefs.in/sitemap.xml
+Sitemap: https://thebulletinbriefs.in/news-sitemap.xml
 
 # RSS Feed
-Sitemap: /rss
+Sitemap: https://thebulletinbriefs.in/rss
 
 # Block admin areas
 Disallow: /admin/
+
+# Block sensitive areas
+Disallow: /api/
+Disallow: /*.json$
+
+# Crawl delay
+Crawl-delay: 1

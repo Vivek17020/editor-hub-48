@@ -4,10 +4,10 @@ import { NewsletterSignup } from './newsletter-signup';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 const socialLinks = [
-  { name: 'Facebook', icon: Facebook, href: '#' },
-  { name: 'Twitter', icon: Twitter, href: '#' },
-  { name: 'Instagram', icon: Instagram, href: '#' },
-  { name: 'YouTube', icon: Youtube, href: '#' },
+  { name: 'Facebook', icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61580246143943' },
+  { name: 'Twitter', icon: Twitter, href: 'https://x.com/Bulletinb176163' },
+  { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/thebulletinbriefs/' },
+  { name: 'YouTube', icon: Youtube, href: 'https://www.youtube.com/@thebulletinbriefs' },
 ];
 
 const footerLinks = {
@@ -49,9 +49,11 @@ export function Footer() {
           {/* Brand Section */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">N</span>
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="TheBulletinBriefs Logo" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
               <span className="font-bold text-xl">TheBulletinBriefs</span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -60,15 +62,15 @@ export function Footer() {
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>contact@thebulletinbriefs.com</span>
+                <span>contact@thebulletinbriefs.in</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>918390710252</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span>123 News Street, Media City</span>
+                <span>Maharashtra, India</span>
               </div>
             </div>
           </div>
@@ -141,6 +143,8 @@ export function Footer() {
                 <a
                   key={social.name}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
                   aria-label={social.name}
                 >

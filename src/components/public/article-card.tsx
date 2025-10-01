@@ -16,9 +16,9 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
   
   if (featured) {
     return (
-      <Link to={`/article/${article.slug}`} className="group">
-        <Card className="overflow-hidden border-border/50 hover:shadow-accent transition-all duration-300 h-full">
-          <div className="relative">
+      <Link to={`/article/${article.slug}`} className="group block">
+        <Card className="overflow-hidden border-border/50 hover:shadow-accent transition-all duration-300 h-full flex flex-col">
+          <div className="relative flex-shrink-0">
             {article.image_url ? (
               <div className="aspect-[16/9] overflow-hidden">
                 <img
@@ -27,6 +27,8 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  style={{ contain: 'layout style paint' }}
                 />
               </div>
             ) : (
@@ -53,16 +55,16 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
               </Link>
             </div>
           </div>
-          <CardContent className="p-6">
+          <CardContent className="p-6 flex-1 flex flex-col">
             <h2 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2">
               {article.title}
             </h2>
             {article.excerpt && (
-              <p className="text-muted-foreground mb-4 line-clamp-3">
+              <p className="text-muted-foreground mb-4 line-clamp-3 flex-1">
                 {article.excerpt}
               </p>
             )}
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-3 w-3" />
@@ -86,33 +88,37 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
   }
 
   return (
-    <Link to={`/article/${article.slug}`} className="group">
-      <Card className="overflow-hidden border-border/50 hover:shadow-accent transition-all duration-300 h-full">
-        {article.image_url ? (
-          <div className="aspect-[16/9] overflow-hidden">
-            <img
-              src={article.image_url}
-              alt={article.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        ) : (
-          <div className="aspect-[16/9] bg-gradient-to-br from-muted/50 to-muted/80 flex items-center justify-center">
-            <div className="text-center p-4">
-              <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <span className="text-primary font-bold">
-                  {article.title.charAt(0).toUpperCase()}
+    <Link to={`/article/${article.slug}`} className="group block">
+      <Card className="overflow-hidden border-border/50 hover:shadow-accent transition-all duration-300 h-full flex flex-col">
+        <div className="flex-shrink-0">
+          {article.image_url ? (
+            <div className="aspect-[16/9] overflow-hidden">
+              <img
+                src={article.image_url}
+                alt={article.title}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                style={{ contain: 'layout style paint' }}
+              />
+            </div>
+          ) : (
+            <div className="aspect-[16/9] bg-gradient-to-br from-muted/50 to-muted/80 flex items-center justify-center">
+              <div className="text-center p-4">
+                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <span className="text-primary font-bold">
+                    {article.title.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground line-clamp-1">
+                  {article.categories?.name}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground line-clamp-1">
-                {article.categories?.name}
-              </span>
             </div>
-          </div>
-        )}
-        <CardContent className="p-4">
+          )}
+        </div>
+        <CardContent className="p-4 flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <Link to={`/category/${article.categories?.slug}`} onClick={(e) => e.stopPropagation()}>
               <Badge 
@@ -130,11 +136,11 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
             {article.title}
           </h3>
           {article.excerpt && (
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-1">
               {article.excerpt}
             </p>
           )}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto">
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />

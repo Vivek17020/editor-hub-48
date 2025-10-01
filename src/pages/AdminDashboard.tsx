@@ -13,6 +13,10 @@ import {
   Users,
   Edit3
 } from 'lucide-react';
+import { AdvancedAnalytics } from '@/components/analytics/advanced-analytics';
+import { VAPIDGenerator } from '@/components/pwa/vapid-generator';
+import { AnalyticsExportFixed as AnalyticsExport } from '@/components/analytics/analytics-export-fixed';
+import { EnhancedPushNotification } from '@/components/pwa/enhanced-push-notification';
 
 interface DashboardStats {
   totalArticles: number;
@@ -269,6 +273,17 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="space-y-6">
+        <AdvancedAnalytics />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <VAPIDGenerator />
+          <EnhancedPushNotification />
+        </div>
+        
+        <AnalyticsExport />
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export default function CategoryPage() {
           "@type": "CollectionPage",
           name: `${category.name} News`,
           description: category.description,
-          url: window.location.href,
+          url: `${window.location.origin}/category/${category.slug}`,
           mainEntity: {
             "@type": "ItemList",
             name: `${category.name} Articles`,

@@ -64,37 +64,56 @@ export const MonetizationDashboard = () => {
       const daysAgo = parseInt(timeRange.replace('d', ''));
       const startDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
 
-      // Fetch revenue data
-      const { data: revenueData } = await supabase
-        .from('monetization_analytics')
-        .select('event_type, revenue_amount, created_at')
-        .gte('created_at', startDate)
-        .not('revenue_amount', 'is', null);
+      // Check if tables exist first and handle permission errors gracefully
+      const queries = await Promise.allSettled([
+        // Fetch revenue data with error handling
+        supabase
+          .from('monetization_analytics')
+          .select('event_type, revenue_amount, created_at')
+          .gte('created_at', startDate)
+          .not('revenue_amount', 'is', null),
 
-      // Fetch subscriber count
-      const { count: totalSubs } = await supabase
-        .from('subscribers')
-        .select('*', { count: 'exact', head: true })
-        .eq('subscribed', true);
+        // Fetch subscriber count with error handling
+        supabase
+          .from('newsletter_subscribers')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true),
 
-      // Fetch analytics
-      const { count: adImpressions } = await supabase
-        .from('monetization_analytics')
-        .select('*', { count: 'exact', head: true })
-        .eq('event_type', 'ad_impression')
-        .gte('created_at', startDate);
+        // Fetch ad impressions
+        supabase
+          .from('monetization_analytics')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_type', 'ad_impression')
+          .gte('created_at', startDate),
 
-      const { count: adClicks } = await supabase
-        .from('monetization_analytics')
-        .select('*', { count: 'exact', head: true })
-        .eq('event_type', 'ad_click')
-        .gte('created_at', startDate);
+        // Fetch ad clicks  
+        supabase
+          .from('monetization_analytics')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_type', 'ad_click')
+          .gte('created_at', startDate),
 
-      const { count: affiliateClicks } = await supabase
-        .from('monetization_analytics')
-        .select('*', { count: 'exact', head: true })
-        .eq('event_type', 'affiliate_click')
-        .gte('created_at', startDate);
+        // Fetch affiliate clicks
+        supabase
+          .from('monetization_analytics')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_type', 'affiliate_click')
+          .gte('created_at', startDate)
+      ]);
+
+      // Extract results with fallbacks for failed queries
+      const revenueData = queries[0].status === 'fulfilled' ? queries[0].value.data : [];
+      const totalSubs = queries[1].status === 'fulfilled' ? queries[1].value.count : 0;
+      const adImpressions = queries[2].status === 'fulfilled' ? queries[2].value.count : 0;
+      const adClicks = queries[3].status === 'fulfilled' ? queries[3].value.count : 0;
+      const affiliateClicks = queries[4].status === 'fulfilled' ? queries[4].value.count : 0;
+
+      // Log any permission errors for debugging
+      queries.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.warn(`Monetization query ${index} failed:`, result.reason);
+        }
+      });
 
       // Calculate metrics
       const totalRevenue = revenueData?.reduce((sum, record) => sum + (record.revenue_amount || 0), 0) || 0;

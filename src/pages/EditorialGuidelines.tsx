@@ -11,7 +11,7 @@ export default function EditorialGuidelines() {
       <SEOHead 
         title="Editorial Guidelines - TheBulletinBriefs"
         description="Learn about TheBulletinBriefs editorial standards, ethics, and guidelines that ensure accurate, fair, and responsible journalism."
-        url={window.location.href}
+        url={`${window.location.origin}/editorial-guidelines`}
       />
       
       <div className="min-h-screen bg-background">

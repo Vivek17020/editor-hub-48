@@ -87,7 +87,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       }),
       Image.configure({
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full h-auto',
+          class: 'w-full max-w-full h-auto my-6 mx-auto rounded-lg shadow-sm block object-cover',
+          style: 'aspect-ratio: 16/9;',
+          loading: 'lazy',
+          decoding: 'async'
         },
       }),
       Table.configure({

@@ -15,6 +15,7 @@ const ARTICLES_PER_PAGE = 12;
 export function ArticleGrid({ categorySlug }: ArticleGridProps) {
   const [page, setPage] = useState(1);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["articles-paginated", categorySlug, page],
@@ -79,6 +80,11 @@ export function ArticleGrid({ categorySlug }: ArticleGridProps) {
     setAllArticles([]);
   }, [categorySlug]);
 
+  // Handle hydration to prevent layout shifts
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   const loadMore = useCallback(() => {
     setPage(prev => prev + 1);
   }, []);
@@ -98,13 +104,16 @@ export function ArticleGrid({ categorySlug }: ArticleGridProps) {
 
   if (isLoading && page === 1) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="articles-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="space-y-3">
-            <div className="aspect-[16/9] bg-muted rounded-lg animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-4 bg-muted rounded animate-pulse" />
-              <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
+          <div key={i} className="article-card-container">
+            <div className="article-card space-y-3">
+              <div className="aspect-[16/9] bg-muted rounded-lg animate-pulse" />
+              <div className="space-y-2 p-4">
+                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
+                <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+              </div>
             </div>
           </div>
         ))}
@@ -130,11 +139,33 @@ export function ArticleGrid({ categorySlug }: ArticleGridProps) {
     );
   }
 
+  // Prevent hydration mismatch by not rendering until hydrated
+  if (!isHydrated) {
+    return (
+      <div className="articles-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="article-card-container">
+            <div className="article-card space-y-3">
+              <div className="aspect-[16/9] bg-muted rounded-lg animate-pulse" />
+              <div className="space-y-2 p-4">
+                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-4 bg-muted rounded w-3/4 animate-pulse" />
+                <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="articles-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {allArticles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <div key={article.id} className="article-card-container">
+            <ArticleCard article={article} />
+          </div>
         ))}
       </div>
 

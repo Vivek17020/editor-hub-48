@@ -14,6 +14,7 @@ export default function SubscriptionPage() {
   const { user } = useAuth();
   const [currentPlan, setCurrentPlan] = useState<string>('free');
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [rzpReady, setRzpReady] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -21,10 +22,35 @@ export default function SubscriptionPage() {
     }
   }, [user]);
 
+  // Load Razorpay Checkout script on client only
+  useEffect(() => {
+    const scriptId = 'razorpay-checkout-js';
+    if (document.getElementById(scriptId)) {
+      setRzpReady(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRzpReady(true);
+    script.onerror = () => setRzpReady(false);
+    document.body.appendChild(script);
+  }, []);
+
   const checkCurrentSubscription = async () => {
     try {
-      // This will be implemented when database tables are available
-      console.log('Checking current subscription for:', user?.email);
+      const { data, error } = await supabase.functions.invoke('check-razorpay-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return;
+      }
+
+      if (data.subscribed) {
+        setCurrentPlan(data.subscription_tier?.toLowerCase() || 'premium');
+        setSubscriptionEnd(data.subscription_end);
+      }
     } catch (error) {
       console.error('Error checking subscription:', error);
     }
@@ -52,6 +78,64 @@ export default function SubscriptionPage() {
       description: "Join exclusive subscriber discussions and Q&As"
     },
   ];
+
+  const startCheckout = async () => {
+    try {
+      if (!rzpReady) {
+        alert('Payment module is still loading. Please try again in a moment.');
+        return;
+      }
+
+      // Create order via Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+        body: { amount: 50000, currency: 'INR' }
+      });
+
+      if (error) {
+        console.error('Error creating order:', error);
+        alert('Unable to start payment. Please try again.');
+        return;
+      }
+
+      const order = data?.order;
+      if (!order?.id) {
+        alert('Order creation failed.');
+        return;
+      }
+
+      const options: any = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'The Bulletin Briefs',
+        description: 'Subscription',
+        order_id: order.id,
+        prefill: {
+          name: user?.user_metadata?.full_name || '',
+          email: user?.email || '',
+        },
+        handler: function (response: any) {
+          // TODO: verify payment on server and store details
+          window.location.href = '/subscription-success';
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Payment popup closed');
+          }
+        },
+        theme: {
+          color: '#0ea5e9'
+        }
+      };
+
+      // @ts-ignore
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Something went wrong starting the checkout.');
+    }
+  };
 
   const testimonials = [
     {
@@ -143,7 +227,12 @@ export default function SubscriptionPage() {
           {/* Subscription Plans */}
           <section className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-12">Choose Your Plan</h2>
-            <SubscriptionPlans />
+            <div className="flex flex-col items-center gap-4">
+              <SubscriptionPlans />
+              <Button size="lg" onClick={startCheckout} disabled={!rzpReady}>
+                {rzpReady ? 'Subscribe' : 'Loading payment...'}
+              </Button>
+            </div>
           </section>
 
           {/* Testimonials */}
@@ -180,7 +269,7 @@ export default function SubscriptionPage() {
                 },
                 {
                   question: "What payment methods do you accept?",
-                  answer: "We accept all major credit cards, debit cards, and digital wallets through our secure payment processor Stripe."
+                  answer: "We accept major cards and popular UPI/wallets through our secure payment processor Razorpay."
                 },
                 {
                   question: "Is there a free trial?",

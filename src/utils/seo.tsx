@@ -12,6 +12,7 @@ interface SEOProps {
   tags?: string[];
   structuredData?: object;
   content?: string; // Add content for auto-keyword generation
+  ampUrl?: string; // AMP page URL
 }
 
 // Auto-generate SEO keywords from content
@@ -76,7 +77,7 @@ export function SEOHead({
   title,
   description,
   image,
-  url = window.location.href,
+  url,
   type = "website",
   publishedTime,
   modifiedTime,
@@ -84,6 +85,7 @@ export function SEOHead({
   tags,
   structuredData,
   content,
+  ampUrl,
 }: SEOProps) {
   const siteTitle = "TheBulletinBriefs";
   const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
@@ -99,6 +101,7 @@ export function SEOHead({
       <meta name="description" content={autoDescription} />
       <meta name="keywords" content={autoKeywords.join(", ")} />
       <link rel="canonical" href={url} />
+      {ampUrl && <link rel="amphtml" href={ampUrl} />}
       
       {/* Google Discover optimization */}
       <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1, index, follow" />

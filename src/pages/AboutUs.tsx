@@ -11,7 +11,7 @@ export default function AboutUs() {
       <SEOHead 
         title="About Us - TheBulletinBriefs"
         description="Learn about TheBulletinBriefs - your trusted source for breaking news, politics, technology, business, sports, and entertainment news from around the world."
-        url={window.location.href}
+        url={`${window.location.origin}/about`}
       />
       
       <div className="min-h-screen bg-background">

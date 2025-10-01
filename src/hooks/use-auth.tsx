@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean; // alias for compatibility
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error?: any }>;
+  signInWithProvider: (provider: 'google' | 'github') => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -19,6 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isAdmin: false,
   signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
+  signInWithProvider: async () => ({ error: null }),
   signOut: async () => {},
 });
 
@@ -89,6 +93,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+    return { error };
+  };
+
+  const signInWithProvider = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: "https://editor-hub-85.vercel.app/",
+      }
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -101,6 +131,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       loading: isLoading, // alias for compatibility
       isAdmin,
       signIn,
+      signUp,
+      signInWithProvider,
       signOut
     }}>
       {children}

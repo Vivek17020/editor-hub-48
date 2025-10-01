@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/public/navbar';
 import { Footer } from '@/components/public/footer';
 import { SEOHead } from '@/utils/seo';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 
 export default function Contact() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,7 +50,7 @@ export default function Contact() {
       <SEOHead 
         title="Contact Us - TheBulletinBriefs"
         description="Get in touch with TheBulletinBriefs editorial team. Send us your news tips, feedback, or business inquiries."
-        url={window.location.href}
+        url={`${window.location.origin}/contact`}
       />
       
       <div className="min-h-screen bg-background">

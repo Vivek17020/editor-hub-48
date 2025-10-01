@@ -110,6 +110,57 @@ export type Database = {
         }
         Relationships: []
       }
+      article_translations: {
+        Row: {
+          ai_summary: string | null
+          article_id: string
+          content: string
+          created_at: string
+          excerpt: string | null
+          id: string
+          language_code: string
+          meta_description: string | null
+          meta_title: string | null
+          seo_keywords: string[] | null
+          slug: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          article_id: string
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          language_code: string
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_keywords?: string[] | null
+          slug: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          article_id?: string
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          language_code?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_keywords?: string[] | null
+          slug?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           ads_enabled: boolean | null
@@ -125,10 +176,12 @@ export type Database = {
           created_at: string
           excerpt: string | null
           featured: boolean | null
+          has_translations: boolean | null
           id: string
           image_url: string | null
           is_premium: boolean | null
           language: string | null
+          language_code: string | null
           likes_count: number | null
           meta_description: string | null
           meta_title: string | null
@@ -162,10 +215,12 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured?: boolean | null
+          has_translations?: boolean | null
           id?: string
           image_url?: string | null
           is_premium?: boolean | null
           language?: string | null
+          language_code?: string | null
           likes_count?: number | null
           meta_description?: string | null
           meta_title?: string | null
@@ -199,10 +254,12 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured?: boolean | null
+          has_translations?: boolean | null
           id?: string
           image_url?: string | null
           is_premium?: boolean | null
           language?: string | null
+          language_code?: string | null
           likes_count?: number | null
           meta_description?: string | null
           meta_title?: string | null
@@ -228,6 +285,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -403,7 +467,47 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "exam_papers_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      languages: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          native_name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          native_name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          native_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       monetization_analytics: {
         Row: {
@@ -444,6 +548,39 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_preferences: {
+        Row: {
+          active: boolean
+          categories: string[] | null
+          created_at: string
+          email: string
+          frequency: string
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          categories?: string[] | null
+          created_at?: string
+          email: string
+          frequency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          categories?: string[] | null
+          created_at?: string
+          email?: string
+          frequency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           email: string
@@ -472,6 +609,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           job_title: string | null
@@ -485,6 +623,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
           job_title?: string | null
@@ -498,6 +637,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           job_title?: string | null
@@ -534,41 +674,94 @@ export type Database = {
         }
         Relationships: []
       }
-      subscribers: {
+      security_audit_log: {
         Row: {
-          created_at: string
-          email: string
+          action: string
+          created_at: string | null
           id: string
-          stripe_customer_id: string | null
-          subscribed: boolean
-          subscription_end: string | null
-          subscription_tier: string | null
-          updated_at: string
+          ip_address: unknown | null
+          resource: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string
-          email: string
+          action: string
+          created_at?: string | null
           id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
+          ip_address?: unknown | null
+          resource?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
-          email?: string
+          action?: string
+          created_at?: string | null
           id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
+          ip_address?: unknown | null
+          resource?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_analytics: {
+        Row: {
+          article_id: string | null
+          browser: string | null
+          click_target: string | null
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          location_country: string | null
+          metadata: Json | null
+          page_url: string | null
+          scroll_depth: number | null
+          session_id: string | null
+          time_spent: number | null
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          browser?: string | null
+          click_target?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          location_country?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          time_spent?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          browser?: string | null
+          click_target?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          location_country?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          time_spent?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_analytics_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
@@ -638,9 +831,65 @@ export type Database = {
           },
         ]
       }
+      vapid_config: {
+        Row: {
+          created_at: string
+          id: string
+          private_key: string
+          public_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          private_key: string
+          public_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          private_key?: string
+          public_key?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          author_bio: string | null
+          author_image_url: string | null
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          job_title: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          author_bio?: string | null
+          author_image_url?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          job_title?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          author_bio?: string | null
+          author_image_url?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          job_title?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_seo_score: {
@@ -652,6 +901,18 @@ export type Database = {
           article_title: string
         }
         Returns: number
+      }
+      can_manage_push_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      get_article_engagement: {
+        Args: { article_uuid: string }
+        Returns: {
+          comments_count: number
+          likes_count: number
+          shares_count: number
+        }[]
       }
       get_author_profile: {
         Args: { author_uuid: string }
@@ -679,6 +940,44 @@ export type Database = {
           id: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_safe_author_profile: {
+        Args: { author_uuid: string }
+        Returns: {
+          author_bio: string
+          author_image_url: string
+          avatar_url: string
+          full_name: string
+          id: string
+          job_title: string
+          username: string
+        }[]
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_security_event: {
+        Args: { action_type: string; resource_name?: string }
+        Returns: undefined
+      }
+      security_check_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          description: string
+          issue: string
+          requires_manual_action: boolean
+          status: string
+        }[]
+      }
+      validate_security_policies: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          has_rls: boolean
+          policy_count: number
+          public_access: boolean
+          table_name: string
         }[]
       }
     }

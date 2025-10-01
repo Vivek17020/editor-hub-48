@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/public/navbar";
 import { CategoryFilter } from "@/components/public/category-filter";
 import { ArticleGrid } from "@/components/public/article-grid";
@@ -16,6 +17,8 @@ import { NativeAdContainer } from '@/components/ads/native-ad-container';
 import { PremiumArticleList } from '@/components/monetization/premium-article-list';
 import { SEOHead, generateOrganizationStructuredData } from '@/utils/seo';
 import { CoreWebVitals } from '@/components/performance/core-web-vitals';
+import { PWAInstaller } from '@/components/pwa/pwa-installer';
+import { usePWA } from '@/hooks/use-pwa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -25,11 +28,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { Search, TrendingUp, Clock, Play, User, Home, Crown } from 'lucide-react';
 
 export default function NewsHomepage() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("for-you");
   
   const { user } = useAuth();
+  const { isOnline, updateAvailable, updateApp } = usePWA();
   const { data: categories } = useCategories();
   const { data: latestArticles } = useArticles(undefined, 1, 6);
 
@@ -84,7 +89,7 @@ export default function NewsHomepage() {
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => window.location.href = '/subscription'}
+                    onClick={() => navigate('/subscription')}
                     className="gap-2 bg-gradient-to-r from-primary to-primary/80"
                   >
                     <Crown className="h-4 w-4" />
@@ -96,9 +101,9 @@ export default function NewsHomepage() {
           </div>
         </div>
         
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 critical-above-fold">
           {/* Hero Section - Featured Articles */}
-          <section className="py-8">
+          <section className="py-4 sm:py-6 lg:py-8 hero-section">
             <FeaturedArticles />
           </section>
 
@@ -164,7 +169,7 @@ export default function NewsHomepage() {
                       </CardContent>
                     </Card>
 
-                    <NewsletterSignup />
+                    {/* Newsletter moved to footer only */}
                   </div>
                 </div>
               </TabsContent>
@@ -175,12 +180,14 @@ export default function NewsHomepage() {
             </Tabs>
           </section>
 
-          {/* Sidebar with Quick Actions */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Push Notifications */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">📱 Stay Updated</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  📱 Push Notifications
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
@@ -190,15 +197,67 @@ export default function NewsHomepage() {
               </CardContent>
             </Card>
 
-            {/* Newsletter Signup */}
-            <div className="md:col-span-2">
-              <NewsletterSignup />
-            </div>
+            {/* Additional features can be added here */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Latest Updates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Stay informed with our latest breaking news and analysis
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  Premium Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Access exclusive articles and ad-free reading
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/subscription')}
+                  className="w-full"
+                >
+                  Upgrade Now
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </main>
 
         {/* Footer */}
         <Footer />
+
+        {/* PWA Components */}
+        <PWAInstaller />
+        
+        {/* Update Available Banner */}
+        {updateAvailable && (
+          <div className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground p-3 text-center z-50">
+            <span className="mr-4">New version available!</span>
+            <Button variant="secondary" size="sm" onClick={updateApp}>
+              Update Now
+            </Button>
+          </div>
+        )}
+
+        {/* Offline Banner */}
+        {!isOnline && (
+          <div className="fixed bottom-0 left-0 right-0 bg-destructive text-destructive-foreground p-3 text-center z-50">
+            📵 You're offline. Some features may not work.
+          </div>
+        )}
 
         {/* Search Dialog */}
         <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />

@@ -14,27 +14,43 @@ export function useLikes(articleId: string) {
 
   const checkIfLiked = async () => {
     try {
+      // Get engagement counts using secure function
+      const { data: engagementData, error: engagementError } = await supabase
+        .rpc('get_article_engagement', { article_uuid: articleId });
+
+      if (engagementError) {
+        console.error('Error fetching engagement:', engagementError);
+        return;
+      }
+
+      setLikesCount(engagementData?.[0]?.likes_count || 0);
+
+      // Check if current user has liked (only for authenticated users)
       const { data: user } = await supabase.auth.getUser();
       const userId = user?.user?.id;
       
-      // Check if user already liked this article
-      const { data } = await supabase
-        .from('article_likes')
-        .select('id')
-        .eq('article_id', articleId)
-        .or(userId ? `user_id.eq.${userId}` : `ip_address.eq.${await getClientIP()}`)
-        .single();
+      if (userId) {
+        const { data } = await supabase
+          .from('article_likes')
+          .select('id')
+          .eq('article_id', articleId)
+          .eq('user_id', userId)
+          .limit(1);
 
-      setIsLiked(!!data);
+        setIsLiked(!!data && data.length > 0);
+      } else {
+        // For anonymous users, check by IP address
+        const clientIP = await getClientIP();
+        const { data } = await supabase
+          .from('article_likes')
+          .select('id')
+          .eq('article_id', articleId)
+          .eq('ip_address', clientIP)
+          .is('user_id', null)
+          .limit(1);
 
-      // Get total likes count for this article
-      const { data: article } = await supabase
-        .from('articles')
-        .select('likes_count')
-        .eq('id', articleId)
-        .single();
-
-      setLikesCount(article?.likes_count || 0);
+        setIsLiked(!!data && data.length > 0);
+      }
     } catch (error) {
       console.error('Error checking likes:', error);
     }

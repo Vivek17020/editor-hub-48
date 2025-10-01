@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArticleCard } from '@/components/public/article-card';
 import { PremiumGate } from './premium-gate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ export const PremiumArticleList = ({
   limit = 6, 
   showGate = true 
 }: PremiumArticleListProps) => {
+  const navigate = useNavigate();
   const { data, isLoading } = useArticles(categorySlug, 1, limit);
   
   // For demo purposes, mark some articles as premium
@@ -86,7 +88,7 @@ export const PremiumArticleList = ({
           <PremiumGate
             isPremium={true}
             previewContent="Unlock access to our entire premium article collection with exclusive interviews, in-depth analysis, and breaking news coverage."
-            onSubscribe={() => window.location.href = '/subscription'}
+            onSubscribe={() => navigate('/subscription')}
           >
             <div>Premium content placeholder</div>
           </PremiumGate>

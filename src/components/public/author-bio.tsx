@@ -16,7 +16,7 @@ export function AuthorBio({ authorId, authorName }: AuthorBioProps) {
       if (!authorId) return null;
       
       const { data, error } = await supabase
-        .rpc('get_author_profile', { author_uuid: authorId });
+        .rpc('get_safe_author_profile', { author_uuid: authorId });
 
       if (error) throw error;
       return data?.[0] || null;

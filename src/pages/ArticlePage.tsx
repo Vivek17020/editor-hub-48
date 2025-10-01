@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SEOHead, generateArticleStructuredData, generateSEOKeywords } from "@/utils/seo";
 import { BreadcrumbSchema, useBreadcrumbs } from "@/components/seo/breadcrumb-schema";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { Calendar, Clock, Eye, User, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,7 +109,7 @@ export default function ArticlePage() {
   }
 
   const publishedDate = article.published_at ? new Date(article.published_at) : new Date(article.created_at);
-  const currentUrl = window.location.href;
+  const currentUrl = `${window.location.origin}${location.pathname}`;
   
   // Auto-generate SEO keywords from article content
   const seoKeywords = generateSEOKeywords(article.title, article.content, article.tags);
@@ -133,6 +134,7 @@ export default function ArticlePage() {
         author={article.author}
         tags={seoKeywords}
         content={article.content}
+        ampUrl={`${window.location.origin}/amp/article/${article.slug}`}
         structuredData={generateArticleStructuredData({
           title: article.title,
           description: article.excerpt || "",
@@ -233,20 +235,22 @@ export default function ArticlePage() {
 
             {/* Featured Image */}
             {article.image_url && (
-              <div className="mb-8">
+              <div className="mb-8 overflow-hidden rounded-lg">
                 <img
                   src={article.image_url}
                   alt={article.title}
-                  className="w-full aspect-[16/9] object-cover rounded-lg"
-                  style={{ minWidth: '1200px', maxWidth: '100%' }}
+                  className="w-full aspect-[16/9] object-cover"
                   loading="lazy"
+                  decoding="async"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                  style={{ objectFit: 'cover', width: '100%', height: 'auto' }}
                 />
               </div>
             )}
 
             {/* Article Content */}
-            <article className="prose prose-lg max-w-none dark:prose-invert mb-12">
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+            <article className="prose prose-lg max-w-none dark:prose-invert mb-12 article-content">
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
             </article>
 
             {/* Tags */}
