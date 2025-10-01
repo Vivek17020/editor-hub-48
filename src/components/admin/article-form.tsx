@@ -244,6 +244,7 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       const articleData = {
         ...formData,
         image_url: imageUrl,
+        author_id: user.id,
         published: !isDraft,
         published_at: !isDraft ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
