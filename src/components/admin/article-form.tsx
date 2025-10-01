@@ -179,12 +179,24 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       
       // Save to Supabase if editing existing article
       if (article?.id) {
+        const sanitizedTags = Array.from(new Set((formData.tags || []).map(t => t.trim()).filter(Boolean)));
+        const categoryId = formData.category_id && formData.category_id !== '' ? formData.category_id : (categories[0]?.id || null);
+        const updatePayload = {
+          title: formData.title,
+          slug: formData.slug,
+          excerpt: formData.excerpt,
+          content: formData.content,
+          image_url: formData.image_url,
+          category_id: categoryId,
+          tags: sanitizedTags,
+          meta_title: formData.meta_title || null,
+          meta_description: formData.meta_description || null,
+          updated_at: new Date().toISOString(),
+        } as any;
+        
         const { error } = await supabase
           .from('articles')
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updatePayload)
           .eq('id', article.id);
         
         if (error) throw error;
@@ -241,15 +253,38 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
         imageUrl = await handleImageUpload(imageFile);
       }
 
+      // Sanitize tags and ensure valid category before saving
+      const sanitizedTags = Array.from(new Set((formData.tags || []).map(t => t.trim()).filter(Boolean)));
+      const categoryId = formData.category_id && formData.category_id !== '' ? formData.category_id : (categories[0]?.id || null);
+      if (!categoryId) {
+        toast({
+          title: "Missing category",
+          description: "Please select or create a category before publishing.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const articleData = {
-        ...formData,
+        title: formData.title,
+        slug: formData.slug,
+        excerpt: formData.excerpt,
+        content: formData.content,
         image_url: imageUrl,
+        category_id: categoryId,
+        tags: sanitizedTags,
+        meta_title: formData.meta_title || null,
+        meta_description: formData.meta_description || null,
         author_id: user.id,
         published: !isDraft,
         published_at: !isDraft ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
-      };
-
+        is_premium: formData.is_premium ?? false,
+        premium_preview_length: formData.premium_preview_length ?? 300,
+        ads_enabled: formData.ads_enabled !== false,
+        affiliate_products_enabled: formData.affiliate_products_enabled !== false,
+      } as any;
       if (article?.id) {
         const { error } = await supabase
           .from('articles')
@@ -598,8 +633,8 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {formData.tags.map((tag, idx) => (
+                    <Badge key={`${tag}-${idx}`} variant="secondary" className="flex items-center gap-1">
                       {tag}
                       <X 
                         className="w-3 h-3 cursor-pointer hover:text-destructive" 
