@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { Upload, Eye, Save, Send, X, Clock, CheckCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import slugify from 'slugify';
+import { z } from 'zod';
 
 interface Article {
   id?: string;
@@ -39,9 +40,34 @@ interface ArticleFormProps {
   onSave?: () => void;
 }
 
+// Validation schema for publishing
+const articleValidationSchema = z.object({
+  title: z.string().trim().min(3, "Title is required"),
+  slug: z
+    .string()
+    .trim()
+    .min(3, "Slug is required")
+    .max(120, "Slug too long")
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  content: z.string().trim().min(20, "Content is too short"),
+  excerpt: z.string().trim().max(300).optional(),
+  meta_title: z.string().trim().max(60, "Meta title must be ≤ 60 characters").optional().nullable(),
+  meta_description: z
+    .string()
+    .trim()
+    .max(160, "Meta description must be ≤ 160 characters")
+    .optional()
+    .nullable(),
+  category_id: z.string().min(1, "Category is required"),
+  tags: z.array(z.string().trim()).max(20, "Too many tags").optional(),
+  is_premium: z.boolean().optional(),
+  premium_preview_length: z.number().int().min(0).max(5000).optional(),
+});
+
 export function ArticleForm({ article, onSave }: ArticleFormProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -94,6 +120,14 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
 
   // Auto-save effect
   useEffect(() => {
+    // Do not schedule autosave during publishing to avoid race conditions
+    if (isPublishing) {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+      return;
+    }
+
     if (hasUnsavedChanges && (formData.title.trim() || formData.content.trim())) {
       // Clear existing timer
       if (autoSaveTimer.current) {
@@ -111,7 +145,7 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
         clearTimeout(autoSaveTimer.current);
       }
     };
-  }, [formData, hasUnsavedChanges]);
+  }, [formData, hasUnsavedChanges, isPublishing]);
 
   // Track changes to form data
   useEffect(() => {
@@ -161,6 +195,7 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
   }, [article?.id]);
 
   const autoSave = useCallback(async () => {
+    if (isPublishing) return; // skip autosave during publish
     if (!formData.title.trim() && !formData.content.trim()) {
       return;
     }
@@ -234,8 +269,14 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
 
   const handleSubmit = async (isDraft: boolean = false) => {
     setLoading(true);
+    setIsPublishing(true);
     
     try {
+      // Stop any pending autosave timer to avoid race conditions
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -247,28 +288,72 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
         navigate('/auth');
         return;
       }
+
       let imageUrl = formData.image_url;
-      
       if (imageFile) {
         imageUrl = await handleImageUpload(imageFile);
       }
 
-      // Sanitize tags and ensure valid category before saving
+      // Sanitize inputs
       const sanitizedTags = Array.from(new Set((formData.tags || []).map(t => t.trim()).filter(Boolean)));
-      const categoryId = formData.category_id && formData.category_id !== '' ? formData.category_id : (categories[0]?.id || null);
-      if (!categoryId) {
-        toast({
-          title: "Missing category",
-          description: "Please select or create a category before publishing.",
-          variant: "destructive",
-        });
-        setLoading(false);
+      const categoryId = formData.category_id && formData.category_id !== '' ? formData.category_id : (categories[0]?.id || '');
+      const safeSlug = slugify(formData.slug || formData.title, { 
+        lower: true, 
+        strict: true,
+        remove: /[*+~.()'"!:@]/g
+      });
+
+      // Validate required fields
+      const validation = articleValidationSchema.safeParse({
+        title: formData.title,
+        slug: safeSlug,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        meta_title: formData.meta_title || null,
+        meta_description: formData.meta_description || null,
+        category_id: categoryId,
+        tags: sanitizedTags,
+        is_premium: formData.is_premium,
+        premium_preview_length: formData.premium_preview_length,
+      });
+
+      if (!validation.success) {
+        const msg = validation.error.issues[0]?.message || 'Validation failed';
+        toast({ title: 'Validation Error', description: msg, variant: 'destructive' });
         return;
       }
 
+      // Ensure slug is unique
+      let slugQuery = supabase
+        .from('articles')
+        .select('id')
+        .eq('slug', safeSlug)
+        .limit(1);
+      if (article?.id) slugQuery = slugQuery.neq('id', article.id);
+      const { data: slugExisting } = await slugQuery.maybeSingle();
+      if (slugExisting?.id) {
+        toast({
+          title: 'Duplicate Slug',
+          description: 'This slug is already in use. Please choose another.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!categoryId) {
+        toast({
+          title: 'Missing category',
+          description: 'Please select or create a category before publishing.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const now = new Date().toISOString();
+
       const articleData = {
         title: formData.title,
-        slug: formData.slug,
+        slug: safeSlug,
         excerpt: formData.excerpt,
         content: formData.content,
         image_url: imageUrl,
@@ -278,23 +363,22 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
         meta_description: formData.meta_description || null,
         author_id: user.id,
         published: !isDraft,
-        published_at: !isDraft ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
+        published_at: !isDraft ? now : null,
+        updated_at: now,
         is_premium: formData.is_premium ?? false,
         premium_preview_length: formData.premium_preview_length ?? 300,
         ads_enabled: formData.ads_enabled !== false,
         affiliate_products_enabled: formData.affiliate_products_enabled !== false,
       } as any;
+
       if (article?.id) {
         const { error } = await supabase
           .from('articles')
           .update(articleData)
           .eq('id', article.id);
-        
         if (error) throw error;
-        
         toast({
-          title: "Article Updated",
+          title: isDraft ? 'Draft updated' : 'Article Published',
           description: `Article ${isDraft ? 'saved as draft' : 'published'} successfully.`,
         });
       } else {
@@ -302,14 +386,11 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
           .from('articles')
           .insert({
             ...articleData,
-            category_id: articleData.category_id || categories[0]?.id || null,
-            created_at: new Date().toISOString(),
+            created_at: now,
           });
-        
         if (error) throw error;
-        
         toast({
-          title: "Article Created",
+          title: isDraft ? 'Draft created' : 'Article Published',
           description: `Article ${isDraft ? 'saved as draft' : 'published'} successfully.`,
         });
       }
@@ -324,12 +405,13 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
       navigate('/admin/articles');
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+        title: 'Error',
+        description: error?.message || 'Failed to save article',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
+      setIsPublishing(false);
     }
   };
 
@@ -401,14 +483,14 @@ export function ArticleForm({ article, onSave }: ArticleFormProps) {
             <Button
               variant="outline"
               onClick={() => handleSubmit(true)}
-              disabled={loading}
+              disabled={loading || isPublishing}
             >
               <Save className="w-4 h-4 mr-2" />
               Save Draft
             </Button>
             <Button
               onClick={() => handleSubmit(false)}
-              disabled={loading}
+              disabled={loading || isPublishing}
               className="bg-gradient-primary hover:bg-gradient-secondary transition-all duration-300"
             >
               <Send className="w-4 h-4 mr-2" />
