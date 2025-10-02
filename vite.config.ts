@@ -17,14 +17,15 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        // Force single React instance
+        "react": path.resolve(__dirname, "./node_modules/react"),
+        "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
       },
       dedupe: [
         "react",
         "react-dom",
         "react-router",
         "react-router-dom",
-        "react/jsx-runtime",
-        "react/jsx-dev-runtime",
       ],
     },
     optimizeDeps: {
@@ -33,10 +34,8 @@ export default defineConfig(({ mode }) => {
         "react-dom",
         "react-router",
         "react-router-dom",
-        "react/jsx-runtime",
-        "react/jsx-dev-runtime",
-        "next-themes",
       ],
+      force: true,
     },
   }
 });
