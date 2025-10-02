@@ -41,19 +41,20 @@ import WebsiteAudit from "./pages/WebsiteAudit";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <BrowserRouter>
-              <ErrorBoundary>
-                <CSPHeaders />
-                <OptimizedCoreWebVitals />
-                <Toaster />
-                <Sonner />
-              <Routes>
+const App = () => {
+  return (
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <CSPHeaders />
+                  <OptimizedCoreWebVitals />
+                  <Toaster />
+                  <Sonner />
+                <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<NewsHomepage />} />
                 <Route path="/article/:slug" element={<ArticlePage />} />
@@ -89,14 +90,15 @@ const App = () => (
                 
                 {/* Catch-all route */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-              </ErrorBoundary>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
-);
+                </Routes>
+                </ErrorBoundary>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  );
+};
 
 export default App;
