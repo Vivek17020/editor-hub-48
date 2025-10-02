@@ -954,6 +954,18 @@ export type Database = {
           username: string
         }[]
       }
+      get_safe_comments: {
+        Args: { article_uuid: string }
+        Returns: {
+          article_id: string
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
