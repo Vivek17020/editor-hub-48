@@ -13,6 +13,10 @@
       "destination": "/api/sitemap.xml"
     },
     {
+      "source": "/news-sitemap.xml",
+      "destination": "/index.html"
+    },
+    {
       "source": "/((?!api/.*).*)",
       "destination": "/index.html"
     }
