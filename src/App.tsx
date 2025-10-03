@@ -14,6 +14,7 @@ import ArticlePage from "./pages/ArticlePage";
 import CategoryPage from "./pages/CategoryPage";
 import RSSFeed from "./pages/RSSFeed";
 import SitemapXML from "./pages/SitemapXML";
+import NewsSitemapXML from "./pages/NewsSitemapXML";
 import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
@@ -60,6 +61,7 @@ const App = () => {
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/rss" element={<RSSFeed />} />
                 <Route path="/sitemap.xml" element={<SitemapXML />} />
+                <Route path="/news-sitemap.xml" element={<NewsSitemapXML />} />
                 <Route path="/about" element={<AboutUs />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/subscription" element={<SubscriptionPage />} />
