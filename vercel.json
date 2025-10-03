@@ -5,6 +5,9 @@
   "functions": {
     "api/sitemap.xml.js": {
       "maxDuration": 10
+    },
+    "api/news-sitemap.xml.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
@@ -14,7 +17,7 @@
     },
     {
       "source": "/news-sitemap.xml",
-      "destination": "/index.html"
+      "destination": "/api/news-sitemap.xml"
     },
     {
       "source": "/((?!api/.*).*)",
@@ -24,6 +27,19 @@
   "headers": [
     {
       "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=3600, stale-while-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/news-sitemap.xml",
       "headers": [
         {
           "key": "Content-Type",
