@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Article } from "@/hooks/use-articles";
@@ -12,7 +12,14 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, featured = false, compact = false }: ArticleCardProps) {
+  const navigate = useNavigate();
   const publishedDate = article.published_at ? new Date(article.published_at) : new Date(article.created_at);
+  
+  const handleCategoryClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/category/${article.categories?.slug}`);
+  };
   
   if (featured) {
     return (
@@ -46,13 +53,12 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
               </div>
             )}
             <div className="absolute top-4 left-4">
-              <Link to={`/category/${article.categories?.slug}`} onClick={(e) => e.stopPropagation()}>
-                <Badge 
-                  className={`bg-${article.categories?.color || 'primary'} text-${article.categories?.color || 'primary'}-foreground hover:opacity-80 transition-opacity`}
-                >
-                  {article.categories?.name}
-                </Badge>
-              </Link>
+              <Badge 
+                className={`bg-${article.categories?.color || 'primary'} text-${article.categories?.color || 'primary'}-foreground hover:opacity-80 transition-opacity cursor-pointer`}
+                onClick={handleCategoryClick}
+              >
+                {article.categories?.name}
+              </Badge>
             </div>
           </div>
           <CardContent className="p-6 flex-1 flex flex-col">
@@ -120,14 +126,13 @@ export function ArticleCard({ article, featured = false, compact = false }: Arti
         </div>
         <CardContent className="p-4 flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-2">
-            <Link to={`/category/${article.categories?.slug}`} onClick={(e) => e.stopPropagation()}>
-              <Badge 
-                variant="secondary"
-                className="text-xs hover:bg-primary/10 transition-colors"
-              >
-                {article.categories?.name}
-              </Badge>
-            </Link>
+            <Badge 
+              variant="secondary"
+              className="text-xs hover:bg-primary/10 transition-colors cursor-pointer"
+              onClick={handleCategoryClick}
+            >
+              {article.categories?.name}
+            </Badge>
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(publishedDate, { addSuffix: true })}
             </span>
