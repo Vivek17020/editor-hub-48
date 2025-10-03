@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
         "react-dom",
         "react-router",
         "react-router-dom",
+        "@tanstack/react-query",
       ],
     },
     optimizeDeps: {
@@ -34,8 +35,8 @@ export default defineConfig(({ mode }) => {
         "react-dom",
         "react-router",
         "react-router-dom",
+        "@tanstack/react-query",
       ],
-      force: true,
     },
   }
 });
